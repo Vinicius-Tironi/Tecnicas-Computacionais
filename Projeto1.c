@@ -252,25 +252,26 @@ pclose(suav_gnuplot);
 // Regressão Linear Sobre os Dados Suavizados    // primeiro dia positivo até o primeiro maximo local ; utiliza os dados suavizados
 printf("Regressão Linear do dia %d (primeiro dia positivo) ao dia %d (primeiro máximo local):\n" , primeiro_dia, posicao_l);
 
+
+int N = (posicao_l - primeiro_dia)+1;
 float soma_x = 0;
 float media_x;
-for (int i = (primeiro_dia); i < (posicao_l); i++)
+for (int i = (primeiro_dia)-1; i < (posicao_l); i++)
 {
     soma_x = soma_x + Dias[i];
 }
-media_x = (soma_x)/(posicao_l - primeiro_dia);
+media_x = (soma_x)/(N);
 //printf("Média Dias = %f\n" , media_x);
 
 float soma_y = 0;
 float media_y;
-for (int i = (primeiro_dia); i <= (posicao_l); i++)
+for (int i = (primeiro_dia)-1; i < (posicao_l); i++)
 {
     soma_y = soma_y + suav_LogDados[i];
 }
-media_y = (soma_y)/(posicao_l - primeiro_dia);
+media_y = (soma_y)/(N);
 //printf("Média Parasitemia = %f\n" , media_y);
 
-int N = posicao_l - primeiro_dia;
 float s_x = 0, s_y = 0, r = 0;
 for (int i = 0; i < N; i++)
 {
@@ -288,7 +289,7 @@ printf("Correlação Dias/Parasitemia = %f;\n" , r);
 float beta = r * (s_y / s_x);
 float intercepto = media_y - beta * media_x;
 
-printf("Coeficiente Angular da Regressão Linear (\beta): %f;\n", beta);
+printf("Coeficiente Angular da Regressão Linear (Beta): %f;\n", beta);
 printf("Intercepto Vertical: %f;\n", intercepto);
 printf("Equação da Reta de Regressão: y = %f + %f * x\n", intercepto, beta);
 
