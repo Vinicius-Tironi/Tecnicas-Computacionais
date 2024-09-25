@@ -37,7 +37,7 @@ FILE *gnuplot;
     fprintf(gnuplot, "plot '-' using 1:2 with linespoints title 'Dados'\n");
 
 
-rewind(arquivo);
+rewind(arquivo);                     // volta ao início do arquivo: evita problemas de contagem com o índice n.
 int i = 0;
 int Dias[n], Dados[n];
 float LogDados[n];
@@ -52,8 +52,8 @@ while (fscanf(arquivo, "%d %d", &dia, &parasitemia) == 2)
     }
     else
     {
-        Dias[i] = i;
-        Dados[i] = 0;
+        Dias[i] = i;               // no caso de arquivos de tamanhos diferentes (sexuada, assexuada), os dias são preenchidos com o índice i (n+1,n+2...)
+        Dados[i] = 0;              // e a parasitemia com zeros.
     }
     fprintf(gnuplot, "%d %d\n", dia, parasitemia);
 }
@@ -63,7 +63,7 @@ pclose(gnuplot);
 // Escala Log
 for (i = 0; i < n; i++)
 {
-    LogDados[i] = log10(Dados[i] + 1);
+    LogDados[i] = log10(Dados[i] + 1);          // forma de melhor visualizar os dados faltantes e evitar indeterminações com o logaritmo.
     printf("Dia: %d; Parasitemia: %d => Log(Parasitemia) = %f\n", Dias[i], Dados[i], LogDados[i]);
 }
 
@@ -87,10 +87,10 @@ pclose(log_gnuplot);
 // Interpolação Linear
 for (int j = 0; j < i; j++)
 {
-    if (LogDados[j] == 5.0)
+    if (LogDados[j] == 5.0)                          // identifica os valores faltantes, agora marcados como log(p+1) = 5.
     {
         int k;
-        for (k = j - 1; k >= 0 && LogDados[k] == 5.0; k--);
+        for (k = j - 1; k >= 0 && LogDados[k] == 5.0; k--);           // estima estes utilizando interpolação linear.
         if (k >= 0)
         {
             int l;
@@ -127,11 +127,11 @@ int posicao_l;
 int posicao_g;
 int m = 0;
 
-for (i = 0 ; i < n ; i ++)
+for (i = 0 ; i < n ; i ++)     // no if abaixo... m: contador de máximos locais => se m < 1, o máximo local identificado é o primeiro máximo local.
 {
     if (LogDados[i] > LogDados[i-3] && LogDados[i] > LogDados[i-2] && LogDados[i] > LogDados[i-1] && LogDados[i] > LogDados[i+1] && LogDados[i] > LogDados[i+2] && LogDados[i] > LogDados[i+3] && m < 1)
     {
-        primeiro_maximo = LogDados[i];
+        primeiro_maximo = LogDados[i];                                              // identifica e armazena o primeiro máximo local e sua posição.
         posicao_l = i+1;
         maximo = LogDados[i];
         printf("Primeiro Máximo Local: %f, observado no dia %d;\n" , maximo, i+1);
@@ -139,7 +139,7 @@ for (i = 0 ; i < n ; i ++)
     }
     else if (LogDados[i] > LogDados[i-3] && LogDados[i] > LogDados[i-2] && LogDados[i] > LogDados[i-1] && LogDados[i] > LogDados[i+1] && LogDados[i] > LogDados[i+2] && LogDados[i] > LogDados[i+3] && m >= 1)
     {
-        maximo = LogDados[i];
+        maximo = LogDados[i];                                                       // identifica os demais máximos locais e sua posição; não os armazena.
         printf("Máximo Local: %f, observado no dia %d;\n" , maximo, i+1);
         m = m + 1;
     }
@@ -150,7 +150,7 @@ for (i = 0 ; i < n ; i ++)
 {
     if (LogDados[i] > LogDados[i-3] && LogDados[i] > LogDados[i-2] && LogDados[i] > LogDados[i-1] && LogDados[i] > LogDados[i+1] && LogDados[i] > LogDados[i+2] && LogDados[i] > LogDados[i+3] && LogDados[i] > maximo)
     {
-        maximo = LogDados[i];
+        maximo = LogDados[i];                   // identifica e armazena o máximo global e sua posição.
         posicao_g = i+1;
     }
 }
@@ -162,19 +162,19 @@ printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 
 int dias_p = 0;
 
-for (i = 0 ; i < n ; i ++)  // parasitemia = 10 => log(parasitemia) = 1
+for (i = 0 ; i < n ; i ++)  // parasitemia = 10 => log10(parasitemia) = 1
 {
     if (LogDados[i] >= 1)
     {
-        dias_p = dias_p + 1;
+        dias_p = dias_p + 1;           // contador de dias positivos
     }
 }
 printf("São observados %d dias positivos.\n" , dias_p);
 int Vet_dias_p[dias_p];
 int j = 0;
 
-for (i = 0 ; i < n ; i ++)
-{
+for (i = 0 ; i < n ; i ++)           // armazena os dias positivos; utilizados para determinar o primeiro e o último dia positivo,
+{                                    // o tamanho e a metade da série positiva.
     if (LogDados[i] >= 1)
     {
         Vet_dias_p[j++] = i+1;
@@ -199,20 +199,20 @@ float prop_segunda_metade;
 
 for (int k = primeiro_dia ; k <= metade_serie; k ++)
 {
-    if (LogDados[k] > 1)
+    if (LogDados[k] >= 1)
     {
         c_primeira_metade = c_primeira_metade + 1;
     }
 }
 for (int k = metade_serie ; k <= ultimo_dia; k ++)
 {
-    if (LogDados[k] > 1)
+    if (LogDados[k] >= 1)
     {
         c_segunda_metade = c_segunda_metade + 1;
     }
 }
 
-prop_primeira_metade = (float)(c_primeira_metade)/(dias_p);
+prop_primeira_metade = (float)(c_primeira_metade)/(dias_p);               // calculam-se as proporções na primeira e segunda metade da série positiva.
 prop_segunda_metade = (float)(c_segunda_metade)/(dias_p);
 
 printf("Quantidade de dias positivos na primeira metade: %d\n" , c_primeira_metade);
@@ -226,10 +226,10 @@ printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 // Suavização da curva
 float suav_LogDados[n];
 
-suav_LogDados[0] = LogDados[0];
+suav_LogDados[0] = LogDados[0];            // primeiro e último pontos não são suavizados, pois, para estes, não existem pontos adjacentes.
 for (int i = 1; i < n - 1; i++)
 {
-    suav_LogDados[i] = (LogDados[i-1] + LogDados[i] + LogDados[i+1]) / 3.0;
+    suav_LogDados[i] = (LogDados[i-1] + LogDados[i] + LogDados[i+1]) / 3.0;        // média movel.
 }
 suav_LogDados[n-1] = LogDados[n-1];
 
@@ -253,8 +253,9 @@ pclose(suav_gnuplot);
 printf("Regressão Linear do dia %d (primeiro dia positivo) ao dia %d (primeiro máximo local):\n" , primeiro_dia, posicao_l);
 
 
-int N = (posicao_l - primeiro_dia)+1;
-float soma_x = 0;
+int N = (posicao_l - primeiro_dia)+1;                                       // cálculo das estatísticas utilizadas na regressão linear.
+
+float soma_x = 0;                                                          // cálculo das médias.
 float media_x;
 for (int i = (primeiro_dia)-1; i < (posicao_l); i++)
 {
@@ -265,7 +266,7 @@ media_x = (soma_x)/(N);
 
 float soma_y = 0;
 float media_y;
-for (int i = (primeiro_dia)-1; i < (posicao_l); i++)
+for (int i = (primeiro_dia)-1; i <= (posicao_l); i++)
 {
     soma_y = soma_y + suav_LogDados[i];
 }
@@ -273,7 +274,7 @@ media_y = (soma_y)/(N);
 //printf("Média Parasitemia = %f\n" , media_y);
 
 float s_x = 0, s_y = 0, r = 0;
-for (int i = 0; i < N; i++)
+for (int i = 0; i < N; i++)                                                   // cálculo dos desvios-padrão.
 {
     s_x = s_x + (Dias[i] - media_x) * (Dias[i] - media_x);
     s_y = s_y + (suav_LogDados[i] - media_y) * (suav_LogDados[i] - media_y);
@@ -286,12 +287,12 @@ printf("Dias: Média = %f; Desvio Padrão = %f;\n", media_x, s_x);
 printf("Parasitemia: Média = %f; Desvio Padrão = %f;\n", media_y, s_y);
 printf("Correlação Dias/Parasitemia = %f;\n" , r);
 
-float beta = r * (s_y / s_x);
-float intercepto = media_y - beta * media_x;
+float beta = r * (s_y / s_x);                                                     // beta_1.
+float intercepto = media_y - beta * media_x;                                      // beta_0.
 
 printf("Coeficiente Angular da Regressão Linear (Beta): %f;\n", beta);
 printf("Intercepto Vertical: %f;\n", intercepto);
-printf("Equação da Reta de Regressão: y = %f + %f * x\n", intercepto, beta);
+printf("Equação da Reta de Regressão: y = %f + %f * x\n", intercepto, beta);     // reta da regressão linear.
 
 printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  * * * * *\n");
 
@@ -314,14 +315,14 @@ printf("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
 // paciente 1: dados_1,_2 ; paciente 2: dados_3,_4 e paciente 3: dados_5,_6.
 // Já usamos x,y antes: S <- sexuada ; A <- assexuada.
 
-FILE *sex_arquivo;
-FILE *as_arquivo;
-sex_arquivo = fopen(dados_5, "r");
+FILE *sex_arquivo;                                 // a correlação cruzada considera pares de arquivos: .dat sexuado e seu .dat assexuado correspondente.
+FILE *as_arquivo;                                  // consideram-se na correlação os dados na escala logarítmica; aqui repetem-se os passos feitos no início do código.
+sex_arquivo = fopen(dados_5, "r");                 // se este código fosse modularizado, haveria muito menos esforço nesta parte!
 as_arquivo = fopen(dados_6, "r");
 
 int cr_n = 0;
 char cr_linha[256];
-while (fscanf(sex_arquivo, "%d %d", &dia, &parasitemia) == 2)
+while (fscanf(sex_arquivo, "%d %d", &dia, &parasitemia) == 2)     // tamanho do .dat
 {
     cr_n = cr_n + 1;
 }
@@ -359,7 +360,7 @@ for (int i = 0; i < 1; i++)
 //  printf("Dia: %d; Parasitemia: %d => Log(Parasitemia) = %f\n", cr_Dias[i], as_Dados[i], as_LogDados[i]);
 }
 
-float soma_S = 0;
+float soma_S = 0;                                 // cálculo das médias.
 float media_S;
 for (int i = 0 ; i <= cr_n ; i++)
 {
@@ -375,7 +376,7 @@ for (int i = 0 ; i <= cr_n ; i++)
 }
 media_A = (soma_A)/(cr_n);
 
-float sigma_S = 0, sigma_A = 0, sigma_SA = 0, r_d;
+float sigma_S = 0, sigma_A = 0, sigma_SA = 0, r_d;        // cálculo dos valores de sigma.
 for (int i = 0; i < cr_n; i++)
 {
     sigma_S = sigma_S + (sex_LogDados[i] - media_S) * (sex_LogDados[i] - media_S);
@@ -389,8 +390,8 @@ printf("Assexuada: Média = %f; sigma_A = %f;\n", media_A, sigma_A);
 
 
 int d;
-printf("Defina o atraso considerado na série sexuada:\n");
-scanf("%d", &d);
+printf("Defina o atraso considerado na série sexuada:\n");                   // aqui, pode-se definir especificamente para qual valor de atraso se deseja
+scanf("%d", &d);                                                             // calcular a correlação cruzada.
 for (int i = 0; i < cr_n - d; i++)
 {
     sigma_SA = sigma_SA + (as_LogDados[i] - media_A) * (sex_LogDados[i+d] - media_S);
@@ -402,8 +403,8 @@ printf("Correlação Cruzada = %f, obtida ao considerar um atraso de %d dias na sé
 double correlacao_cruzada[cr_n];
 int atraso[cr_n];
 
-for (int D = 0; D < cr_n; D++)
-{
+for (int D = 0; D < cr_n; D++)                                              // aqui, os valores de correlação cruzada e seus respectivos atrasos são armazenados
+{                                                                           // em vetores; Assim, pode-se plotá-los.
     float sigma_SA = 0;
     for (int i = 0; i < cr_n - D; i++)
     {
