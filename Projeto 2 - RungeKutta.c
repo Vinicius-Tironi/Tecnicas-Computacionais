@@ -3,7 +3,7 @@
 #include<locale.h>
 #include <stdlib.h>
 
-double H = 10000;
+double H = 10000;                                          // Parâmetros
 double n = 0.01;
 double K = powf(10,6);
 double r = 0.2;
@@ -12,31 +12,30 @@ double mb = 0.66;
 double e = 10;
 double a = 1.0;
 
-
 double lambda(double B)
 {
     return B / (K + B);
 }
 
-double dSdt(double t, double S, double I, double B)
+double dSdt(double t, double S, double I, double B)        // Humanos Susceptíveis
 {
-    double A = 0.5 + 0.5 * sin(2 * M_PI * t / 365);
+    double A = 0.5 + 0.5 * sin(2 * M_PI * t / 365);        // Taxa de contato modificada por uma função periódica
     return n * (H - S) - a * lambda(B) * S;
 }
 
-double dIdt(double t, double S, double I, double B)
+double dIdt(double t, double S, double I, double B)        // Humanos Infectados
 {
     double A = 0.5 + 0.5 * sin(2 * M_PI * t / 365);
     return a * lambda(B) * S - r * I;
 }
 
-double dBdt(double t, double S, double I, double B)
+double dBdt(double t, double S, double I, double B)        // Toxina V. cholerae presente na água
 {
     double E = e + e * sin(2 * M_PI * t / 365);
     return B * (nb - mb) + e * I;
 }
 
-void runge_kutta(double *S, double *I, double *B, double *t, double h)
+void runge_kutta(double *S, double *I, double *B, double *t, double h)       // Runge-Kutta de Quarta Ordem
 {
     double k1, l1, j1;
     double k2, l2, j2;
@@ -65,7 +64,7 @@ void runge_kutta(double *S, double *I, double *B, double *t, double h)
     *t += h;
 }
 
-void plot_dados()
+void plot_dados()                                                   // Plotagem dos dados
 {
     FILE *gp = popen("gnuplot -persistent", "w");
 
@@ -92,15 +91,15 @@ int main()
 setlocale(LC_ALL, "Portuguese");
 setlocale(LC_NUMERIC, "C");
 
-    double S = H;
+    double S = H;                                           // Variáveis de estado
     double I = 100.0;
     double B = 50.0;
-    double h = 0.01;
+    double h = 0.01;                                        // Tempo e passo de tempo
     double t = 0.0;
     double T = 365.0;
 
-    double Sc = ((r*K*(mb-nb))/e);
-    double R = (S*(a * e))/(r*K*(mb-nb));
+    double Sc = ((r*K*(mb-nb))/e);                          // Quantidade crítica de indivíduos susceptíveis
+    double R = (S*(a * e))/(r*K*(mb-nb));                   // Número básico de reprodução R_0
 
     printf("Sc = %lf\n" , Sc);
     printf("R = %lf\n" , R);
@@ -116,6 +115,5 @@ setlocale(LC_NUMERIC, "C");
 
     fclose(fp);
     plot_dados();
-
 }
 
